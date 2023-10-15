@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String     @id @default(cuid())
+  fname    String
+  lname    String
+  car      Car?
+  carBlogs CarBlogs[]
+  friendId String?     @unique
+  friend   User?      @relation("friend", fields: [friendId], references: [id])
+  friendOf User?      @relation("friend")
+}
+
+model Car {
+  id     String  @id @default(cuid())
+  color  String
+  bought Boolean @default(false)
+  name   String
+  userId String  @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model CarBlogs {
+  id                  String                @id @default(cuid())
+  content             String
+  createdAt           DateTime              @default(now())
+  userId              String
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  CategoriesOnCarBlog CategoriesOnCarBlog[]
+}
+
+model CategoryCarBlog {
+  id       String                @id @default(cuid())
+  name     String
+  carBlogs CategoriesOnCarBlog[]
+}
+
+model CategoriesOnCarBlog {
+  carBlog    CarBlogs        @relation(fields: [carBlogId], references: [id])
+  carBlogId  String
+  category   CategoryCarBlog @relation(fields: [categoryId], references: [id])
+  categoryId String
+  assignedAt DateTime        @default(now())
+  assignedBy String
+
+  @@id([carBlogId, categoryId])
+}
